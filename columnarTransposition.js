@@ -8,8 +8,8 @@ let quadGramCounts = [];
 var con = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "*************",
-  database: "habe"
+  password: "*********",
+  database: "*********"
 });
 
 async function main () {
@@ -17,56 +17,77 @@ async function main () {
 
 // Wait for user's response.
 //var cipherText = readlineSync.question('Please enter the cipher text: ');
-  let afterThousand = ''
-  let cipherText = 'giuifgceiiprctpnnduceiqprcni';
-  let cipherLength = cipherText.length;
+
+  //given a cipher text and a row length
+  let plainText = 'nalcxehwttdttfseeleedsoaxfeahl';
+  let cipherLength = plainText.length;
   let quadLength = cipherLength - 3;
+  let rowLength = 6;
+  let columnar = [];
 
-//shuffles the alphabet to try to guess the key  -- generates the first parent
-  const str = 'abcdefghijklmnopqrstuvwxyz';
-  const shuffle = str => [...str].reduceRight((res, _, __, arr) => [...res, arr.splice(~~(Math.random() * arr.length), 1)[0]], []).join('');
-  //let key = 'phqgiumeaylnofdxjkrcvstzwb';
 
-  let key = shuffle(str);
-  //console.log('key', key);
   let count = 0;
   let lowestFitness = {
     plainText: '',
     fitness: -999999999999999999999999.00        //set lowest fitness to negative infinity
   };
 
-  /*let allQuadGrams = [];
-  await getAllQuadCounts().then(response => {
-    allQuadGrams = response;
-  })*/
+//convert cipherText into a matrix by reading them into the columns from top to bottom, left to right
+  let arr = [];
+  for(let i = 0; i < rowLength - 1; i++){
+    arr.push([]);
+  }
 
-  let rand1 = Math.floor(Math.random() * 26) + 1;
-  let rand2 = Math.floor(Math.random() * 26) + 1;
-  let firstSwap = 0;
+  let text = 0;
+  for(let i = 0; i < rowLength; i++){
+    for (let j = 0; j < arr.length; j++){
+      arr[j].push(plainText[text]);
+      text++;
+    }
+  }
+  columnar = arr;
+
+  console.log('columnar b4 swap', columnar);
+  //make new swap nums
+  let rand1 = Math.floor(Math.random() * rowLength);
+  let rand2 = Math.floor(Math.random() * rowLength);
+  console.log('rand1', rand1);
+  console.log('rand2', rand2);
+
+  //swap new random columns
+  for(let i = 0; i < columnar.length; i++){
+    for (let j = 0; j < rowLength; j++) {
+      if(j === rand1) {
+        let temp = columnar[i][rand1];
+        columnar[i][rand1] = columnar[i][rand2];
+        columnar[i][rand2] = temp;
+      }
+    }
+  }
+  console.log('columnar after swap', columnar);
+
+  //turn back to string
+  plainText = '';
+  for(let i = 0; i < columnar.length; i++){
+    for(let j = 0; j < rowLength; j++){
+      plainText += columnar[i][j];
+      //console.log(columnar[i][j])
+      //console.log(i, " ", j)
+    }
+  }
+  console.log('plaintext all before while', plainText);
 
 
-/*
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-*/
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   while (count <= 1000) {
     let quadgrams = [];
     let quadCounts = [];
     let quadGramProbabilities = [];
     let quadGramLogs = [];
     let fitness = -999999999999999999999999.00;
-//decipher the message
-    //console.log('key before translation ', key)
-    let plainText = ''; //conversion to plaintext variable
-    for (let i = 0; i < cipherText.length; i++) {
-      for (let k = 0; k < 26; k++) {  //loop through the key
-        if (cipherText[i] === key[k]) {  // if location of the cipher = key => swap with corresponding substitution letter
-          plainText += str[k];
-        }
-      }
-    }
-    //console.log(plainText.length);
-    //console.log('plaintext', plainText);
-//console.log(shuffle(str));
+    console.log('plaintext', plainText);
+
 
 //seperate plaintext into quads
     for (let i = 0; i < plainText.length; i++) {
@@ -82,73 +103,101 @@ async function main () {
 //get counts of quadgrams
     await getQuadCounts(quadgrams).then(response => {
       quadCounts = response;
-      //console.log('getQuadCounts Response ... Finallyyyyyyyyy', response);
-      console.log('plaintext', plainText);
+        console.log('quadcounts', quadCounts);
     });
 
 
 //get probabalitiy of quadgram
     await convertCountsToProbs(quadCounts, quadLength).then(response => {
-      //console.log('probs', response)
       quadGramProbabilities = response;
+      console.log('quad probs', quadGramProbabilities)
     });
 
 // get log of probability
     quadGramProbabilities.map(x => {
       quadGramLogs.push(Math.log10(x));
     });
-    //console.log('logs', quadGramLogs);
+    console.log('logs', quadGramLogs);
 
 // add all of the logs to get the fitness of the parent
     fitness = quadGramLogs.reduce((a, b) => a + b, 0);
     console.log('fitness = ', fitness);
 
     console.log(count);
-    console.log(key)
-    //console.log('key', key)
     console.log(lowestFitness);
 //compare newfitness to lowestFitness
     if(fitness > lowestFitness.fitness) { // better plaintext found
-      console.log('good')
+      console.log('good');
       count = 0; // reset count
       lowestFitness.fitness = fitness;
       lowestFitness.plainText = plainText;
-      //make a new swap
-      rand1 = Math.floor(Math.random() * 26) + 1;
-      rand2 = Math.floor(Math.random() * 26) + 1;
-      //console.log(rand1, rand2);
 
-      //swap new random positions
-      key = key.split('');
-      let temp = key[rand1];
-      key[rand1] = key[rand2];
-      key[rand2] = temp;
-      key = key.join('');
+      console.log('columnar', columnar)
+      //make new swap nums
+      rand1 = Math.floor(Math.random() * rowLength);
+      rand2 = Math.floor(Math.random() * rowLength);
+
+      //swap new random columns
+      for(let i = 0; i < columnar.length; i++){
+        for (let j = 0; j < rowLength; j++) {
+          if(j === rand1) {
+            let temp = columnar[i][rand1];
+            columnar[i][rand1] = columnar[i][rand2];
+            columnar[i][rand2] = temp;
+          }
+        }
+      }
+      console.log('columnar', columnar);
+      //turn back to string
+      plainText = '';
+      console.log('should be empyt', plainText);
+      for(let i = 0; i < columnar.length; i++){
+        for(let j = 0; j < rowLength; j++){
+          console.log(columnar);
+          plainText += columnar[i][j];
+          //console.log(columnar[i][j])
+          //console.log(i, " ", j)
+          //console.log(plainText)
+        }
+      }
+      console.log('plaintext', plainText)
     }
     else{  // not a better plaintext
       console.log('bad');
-      firstSwap ++;
       count++;
       //swap the previous swap back
-      key = key.split('');
-      let temp = key[rand1];
-      key[rand1] = key[rand2];
-      key[rand2] = temp;
-      key = key.join('');
-      //generate 2 random numbers
-      rand1 = Math.floor(Math.random() * 26) + 1;
-      rand2 = Math.floor(Math.random() * 26) + 1;
-      //console.log(rand1, rand2);
+      for(let i = 0; i < columnar.length; i++){
+        let temp = columnar[i][rand1];
+        columnar[i][rand1] = columnar[i][rand2];
+        columnar[i][rand2] = temp;
+      }
 
-      //swap new random positions
-      key = key.split('');
-      let temp2 = key[rand1];
-      key[rand1] = key[rand2];
-      key[rand2] = temp2;
-      key = key.join('');
+      //generate 2 random numbers
+      rand1 = Math.floor(Math.random() * rowLength);
+      rand2 = Math.floor(Math.random() * rowLength);
+
+      //swap new random columns
+      for(let i = 0; i < columnar.length; i++){
+        for (let j = 0; j < rowLength; j++) {
+          if(j === rand1) {
+            let temp = columnar[i][rand1];
+            columnar[i][rand1] = columnar[i][rand2];
+            columnar[i][rand2] = temp;
+          }
+        }
+      }
+      //turn back to string
+      plainText = '';
+      for(let i = 0; i < columnar.length; i++){
+        for(let j = 0; j < rowLength; j++){
+          plainText += columnar[i][j];
+          //console.log(columnar[i][j])
+          //console.log(i, " ", j)
+          //console.log(plainText)
+        }
+      }
     }
   }
-
 
   process.exit();
 }
@@ -190,17 +239,6 @@ async function getQuadCounts(quadgrams) {
     });
   });
 }
-
-/*async function getAllQuadCounts() {
-  let sql = 'SELECT * FROM habe.quad_grams';
-  let values = [];
-
-  return await new Promise((res, rej) => {
-    con.query(sql, function (error, results) {
-      res(results);
-    });
-  });
-}*/
 
 async function convertCountsToProbs(quadCounts, quadlength) {
   let counts = [];
