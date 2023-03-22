@@ -40,6 +40,8 @@ async function main () {
     allQuadGrams = response;
   })*/
 
+  adding some crap
+
   let rand1 = Math.floor(Math.random() * 26) + 1;
   let rand2 = Math.floor(Math.random() * 26) + 1;
   let firstSwap = 0;
