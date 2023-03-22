@@ -40,7 +40,7 @@ async function main () {
     allQuadGrams = response;
   })*/
 
-  adding some crap
+  // testing for detahced head
 
   let rand1 = Math.floor(Math.random() * 26) + 1;
   let rand2 = Math.floor(Math.random() * 26) + 1;
